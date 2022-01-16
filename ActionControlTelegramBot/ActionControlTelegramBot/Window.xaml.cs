@@ -23,6 +23,8 @@ namespace ActionControlTelegramBot
     {
         public EventHandler TextEntered;
         public EventHandler ChatListClicked;
+        public EventHandler TokenEditClicked;
+        public EventHandler ShowUiChanged;
         public UIWindow()
         {
             InitializeComponent();
@@ -60,8 +62,9 @@ namespace ActionControlTelegramBot
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            TextEntered?.Invoke(this.enterTextBox.Text, e);
+            
             this.PrintMessage('\n'+this.enterTextBox.Text);
+            TextEntered?.Invoke(this.enterTextBox.Text, e);
             this.enterTextBox.Text = "";
             this.enterTextGrid.Visibility = Visibility.Hidden;
             
@@ -91,6 +94,21 @@ namespace ActionControlTelegramBot
 
             Process = Process.Start(ProcessInfo);
             //Process.WaitForExit();
+        }
+
+        private void ChatListButton_Click(object sender, RoutedEventArgs e)
+        {
+            ChatListClicked?.Invoke(sender, e);
+        }
+
+        private void EditTokenButton_Clicked(object sender, RoutedEventArgs e)
+        {
+            TokenEditClicked?.Invoke(sender, e);
+        }
+
+        private void ShowUiChecked(object sender, RoutedEventArgs e)
+        {
+            ShowUiChanged?.Invoke((sender as CheckBox).IsChecked, e);
         }
     }
 }

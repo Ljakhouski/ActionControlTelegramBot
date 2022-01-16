@@ -5,22 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ActionControlTelegramBot"
         mc:Ignorable="d"
-        Title="Window" Height="304" Width="509" Background="#FF16181B">
+        Title="Window" Height="304" Width="509" Background="#2b2936">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="37"/>
+            <RowDefinition Height="45"/>
         </Grid.RowDefinitions>
 
-        <RichTextBox x:Name="textBox" Grid.Row="0" Background="#00000000" BorderBrush="#FF1E1E66"/>
-        <StackPanel Orientation="Horizontal" Grid.Row="2">
-            <Button Content="chat list" Height="18" Background="#FFBF9E09" Margin="5" Width="51"/>
-            <Button Content="open JSON" Height="18" Background="#FFBF9E09" Margin="5" Width="72" Click="Button_Click_1"/>
-            <Button Content="edit Token" Width="65" Height="18" Background="#FFBF9E09" Margin="5"/>
+        <RichTextBox x:Name="textBox" x:FieldModifier="public" IsReadOnly="True" VerticalScrollBarVisibility="Auto"  Grid.Row="0" Margin="10" Background="#FF1E1E66" >
+            <RichTextBox.Resources>
+                <Style TargetType="{x:Type Paragraph}">
+                    <Setter Property="Margin" Value="0"/>
+                    
+                </Style>
+            </RichTextBox.Resources>
+        </RichTextBox>
+        <StackPanel Orientation="Horizontal" Margin="10,0,10,0" Grid.Row="2">
+            <Button Content="chat list" Height="20" Background="#FFBF9E09" Margin="5" Width="51" Click="ChatListButton_Click"/>
+            <Button Content="open JSON" Height="20" Background="#FFBF9E09" Margin="5" Width="72" Click="Button_Click_1"/>
+            <Button Content="edit Token" Width="65" Height="20" Background="#FFBF9E09" Margin="5" Click="EditTokenButton_Clicked"/>
+            <CheckBox Margin="5,15,5,10" Content="show UI on startup" Background="#FFBF9E09" IsChecked="True" Checked="ShowUiChecked" Unchecked="ShowUiChecked"/>
         </StackPanel>
 
-        <Grid x:Name="enterTextGrid" Visibility="Hidden" Grid.Row="1">
+        <Grid x:Name="enterTextGrid" Visibility="Hidden" Grid.Row="1" Margin="10,0,10,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="50"/>

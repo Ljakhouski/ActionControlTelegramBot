@@ -22,6 +22,8 @@ namespace ActionControlTelegramBot
     class UserInfo
     {
         public long ChatId;
+        public string UzerName;
+        public string LastName;
         public bool RecieveLogs = true;
     }
     class Info
@@ -29,6 +31,7 @@ namespace ActionControlTelegramBot
         public string Token;
         public List<UserInfo> Users = new List<UserInfo>();
         public bool ShowWindow = true;
+        public bool IgnoreAll = false;
         public bool ContainsUser(long id)
         {
             foreach (UserInfo i in Users)
@@ -46,6 +49,7 @@ namespace ActionControlTelegramBot
         private static TelegramBotClient? bot;
 
         private static UIWindow ui;
+        private static bool NeedToShow = false;
 
         enum Mode
         {
@@ -60,8 +64,7 @@ namespace ActionControlTelegramBot
             //{
             
             currentLog = new Log() { startTime = DateTime.Now };
-            ui = new UIWindow();
-            ui.TextEntered += textEntered_Clicked;
+            CreateUIWindow();
             //});
         
             //viewThread.SetApartmentState(ApartmentState.STA);
@@ -79,59 +82,62 @@ namespace ActionControlTelegramBot
                     await Start(info);
                 }
                 ).GetAwaiter().GetResult();
-                
+
 
                 if (info.ShowWindow)
                 {
-                    
-                     ui.ShowDialog();
-
-                    
+                    ui.ShowDialog();
                 }
             }
             else
             {
                 
-                
                 ui.PrintWarningMessage("info.json was not found\n");
                 ui.PrintWarningMessage("let's generate info.json...\n");
-                ui.PrintWarningMessage("paste this token from telegram-bot: ");
-                mode = Mode.TokenEntering;
-                ui.TextEnteringEnable();
-                ui.ShowDialog();
-
-                Task.Run(async () =>
-                {
-                    await Start(info);
-                }
-                ).GetAwaiter().GetResult();
-                                           
-                                           
-
-                // viewThread3.SetApartmentState(ApartmentState.STA);
-                // viewThread3.Start();
-
-
-                /*Dispatcher.Invoke(() =>
-                {
-                    ui.PrintWarningMessage("info.json was not found\n");
-                    ui.PrintWarningMessage("let's generate info.json...\n");
-                    ui.PrintWarningMessage("paste this token from telegram-bot: ");
-                    mode = Mode.TokenEntering;
-                    ui.TextEnteringEnable();
-                }
-                );*/
+                info = new Info();
+                EditToken(null,null);
             }
 
 
-
-
-
             //Keyboard. keys = Keyboard.GetState(); while (!keys.IsKeyDown(Keys.P))
-            Console.Read();
+            //Console.Read();
 
             while (true) //Console.Read();
-                Task.Delay(1000);
+                         //Task.Delay(10000);
+            {
+                Thread.Sleep(100);
+                if (NeedToShow)
+                {
+                    NeedToShow = false;
+                    CreateUIWindow();
+                    ui.ShowDialog();
+                }
+            }
+                
+        }
+        private static void CreateUIWindow()
+        {
+            ui = new UIWindow();
+            ui.TextEntered += textEntered_Clicked;
+            ui.ChatListClicked += PrintChatList;
+            ui.TokenEditClicked += EditToken;
+            ui.ShowUiChanged += ShowUiChanged;
+        }
+        private static void ShowUiChanged(object sender, EventArgs e)
+        {
+            info.ShowWindow = (bool)sender;
+            System.IO.File.WriteAllText("info.json", JsonConvert.SerializeObject(info), Encoding.UTF8);
+            ui.PrintMessage((bool)sender? "\nShowing UI Enabled\n" : "\nShowing UI Disabled\n");
+        }
+
+        private static void PrintChatList(object sender, EventArgs e)
+        {
+            if (info != null)
+                foreach (UserInfo i in info.Users)
+                {
+                    ui.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle,
+                           new Action(() => { ui.PrintMessage("\nUzer: \"" + i.UzerName+ "\"\nName: "+i.LastName+"\nChat Id: "+i.ChatId.ToString()+"\n"); }));
+                }
         }
 
         private static void textEntered_Clicked(object sender, EventArgs e)
@@ -143,11 +149,18 @@ namespace ActionControlTelegramBot
                     try
                     {
                         mode = Mode.None;
-                        info = new Info() { Token = (string) sender };
+                        info.Token = (string)sender;
                         System.IO.File.WriteAllText("info.json", JsonConvert.SerializeObject(info), Encoding.UTF8);
-                        ui.PrintMessage("Successfully\n.\n.\n.\n");
-                    }
-                    catch (Exception ex)
+                        ui.PrintMessage("\nSuccessfully\n");
+
+                            Task.Run(async () =>
+                            {
+                                await Start(info);
+                            }
+                            ).GetAwaiter().GetResult();
+
+                        }
+                        catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                     }
@@ -163,6 +176,8 @@ namespace ActionControlTelegramBot
         public static async Task Start(Info info)
         {
             bot = new TelegramBotClient(info.Token);
+            
+            //bot.Timeout = TimeSpan.FromMilliseconds(10);
             using var cts = new CancellationTokenSource();
             var receiverOptions = new ReceiverOptions
             {
@@ -182,7 +197,7 @@ namespace ActionControlTelegramBot
             },;*/
 
             ui.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle,
-                       new Action(() => { ui.PrintMessage("Bot started..."); }));
+                       new Action(() => { ui.PrintMessage("Bot started...\n"); }));
 
             foreach (UserInfo i in info.Users)
                 await bot.SendTextMessageAsync(
@@ -195,6 +210,9 @@ namespace ActionControlTelegramBot
 
         async static Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
+            if (info.IgnoreAll)
+                return;
+
             if (update.Type != UpdateType.Message)
                 return;
 
@@ -206,12 +224,12 @@ namespace ActionControlTelegramBot
 
             if (!info.ContainsUser(chatId))
             {
-                info.Users.Add(new UserInfo() { ChatId = chatId });
+                info.Users.Add(new UserInfo() { ChatId = chatId, LastName = update.Message.Chat.LastName, UzerName = update.Message.Chat.Username});
                 System.IO.File.WriteAllText("info.json", JsonConvert.SerializeObject(info), Encoding.UTF8);
 
                 await botClient.SendTextMessageAsync(
                 chatId: chatId,
-                text: "Hi new user! Computer is running now. Send /apps for check running apps",
+                text: "Hi new user! Computer is running now. Send /help to get a list of commands",
                 cancellationToken: cancellationToken);
 
                 return;
@@ -259,11 +277,19 @@ namespace ActionControlTelegramBot
             {
                 info.ShowWindow = true;
                 System.IO.File.WriteAllText("info.json", JsonConvert.SerializeObject(info), Encoding.UTF8);
-
-                Thread newWindowThread = new Thread(new ThreadStart(()=> { SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher)); ui.ShowDialog(); System.Windows.Threading.Dispatcher.Run(); }));
+                NeedToShow = true;
+                /*
+                Thread newWindowThread = new Thread(new ThreadStart(()=> {
+                    ui.ContextMenu.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle,
+                    new Action(() => { ui.ShowDialog(); }));
+                    SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
+                    ui.Dispatcher.Invoke(() => { ui.ShowDialog(); });
+                    System.Windows.Threading.Dispatcher.Run(); 
+                }
+                ));
                 newWindowThread.SetApartmentState(ApartmentState.STA);
                 newWindowThread.IsBackground = true;
-                newWindowThread.Start();
+                newWindowThread.Start();*/
 
                 //Thread viewThread = new Thread(() =>
                 //{
@@ -290,6 +316,24 @@ namespace ActionControlTelegramBot
                  chatId: chatId,
                  text: "UI is hidden",
                  cancellationToken: cancellationToken);
+            }
+            else if (messageText == "/turnoff")
+            {
+                Telegram.Bot.Types.Message sentMessage = await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: "Turn off the computer... ",
+                cancellationToken: cancellationToken);
+
+                Process.Start("shutdown", "/s /t 0");
+            }
+            else if (messageText == "/reboot")
+            {
+                Telegram.Bot.Types.Message sentMessage = await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: "Rebooting the computer... ",
+                cancellationToken: cancellationToken);
+
+                Process.Start("shutdown", "/r /t 0");
             }
             else if (messageText == "/log")
             {
@@ -318,6 +362,13 @@ namespace ActionControlTelegramBot
                         System.IO.File.WriteAllText("info.json", JsonConvert.SerializeObject(info), Encoding.UTF8);
                     }
             }
+            else if (messageText == "/help")
+            {
+                Telegram.Bot.Types.Message sentMessage = await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: "Command list: \n /mute \n /unmute \n /log \n /turnoff \n /reboot \n /showui \n /hideui",
+                cancellationToken: cancellationToken);
+            }
             else
             { 
             Telegram.Bot.Types.Message sentMessage = await botClient.SendTextMessageAsync(
@@ -329,6 +380,7 @@ namespace ActionControlTelegramBot
 
         static Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
+            return Task.CompletedTask; 
             var errorMessage = exception switch
             {
                 ApiRequestException apiRequestException
@@ -340,7 +392,14 @@ namespace ActionControlTelegramBot
             ui.Dispatcher.Invoke(() => { ui.PrintWarningMessage(errorMessage); });
             return Task.CompletedTask;
         }
-
+        static void EditToken(object sender, EventArgs e)
+        {
+            ui.PrintWarningMessage("paste token from telegram-bot here: \n");
+            mode = Mode.TokenEntering;
+            ui.TextEnteringEnable();
+            if (!ui.IsActive)
+                ui.ShowDialog();
+        }
         static List<Process> GetWindowProcesses()
         {
             var l = new List<Process>();
