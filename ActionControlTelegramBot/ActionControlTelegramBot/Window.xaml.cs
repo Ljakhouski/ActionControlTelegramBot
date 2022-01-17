@@ -19,13 +19,13 @@ namespace ActionControlTelegramBot
     /// </summary>
     /// 
     
-    public partial class UIWindow : Window
+    public partial class UiWindow : Window
     {
         public EventHandler TextEntered;
         public EventHandler ChatListClicked;
         public EventHandler TokenEditClicked;
         public EventHandler ShowUiChanged;
-        public UIWindow()
+        public UiWindow()
         {
             InitializeComponent();
         }

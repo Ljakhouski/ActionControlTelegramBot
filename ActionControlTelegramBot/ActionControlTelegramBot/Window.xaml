@@ -1,4 +1,4 @@
-﻿<Window x:Class="ActionControlTelegramBot.UIWindow"
+﻿<Window x:Class="ActionControlTelegramBot.UiWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -25,7 +25,7 @@
             <Button Content="chat list" Height="20" Background="#FFBF9E09" Margin="5" Width="51" Click="ChatListButton_Click"/>
             <Button Content="open JSON" Height="20" Background="#FFBF9E09" Margin="5" Width="72" Click="Button_Click_1"/>
             <Button Content="edit Token" Width="65" Height="20" Background="#FFBF9E09" Margin="5" Click="EditTokenButton_Clicked"/>
-            <CheckBox Margin="5,15,5,10" Content="show UI on startup" Background="#FFBF9E09" IsChecked="True" Checked="ShowUiChecked" Unchecked="ShowUiChecked"/>
+            <CheckBox Margin="5,15,5,10" Content="show Ui on startup" Background="#FFBF9E09" IsChecked="True" Checked="ShowUiChecked" Unchecked="ShowUiChecked"/>
         </StackPanel>
 
         <Grid x:Name="enterTextGrid" Visibility="Hidden" Grid.Row="1" Margin="10,0,10,0">
