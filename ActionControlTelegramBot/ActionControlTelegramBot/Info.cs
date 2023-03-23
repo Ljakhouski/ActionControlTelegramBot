@@ -16,6 +16,8 @@ namespace ActionControlTelegramBot
         public string Token;
         public List<UserInfo> Users = new List<UserInfo>();
         public bool ShowWindow = true;
+
+        public bool ShowJokeWindow = false;
         public bool IgnoreAll = false;
         public bool ContainsUser(long id)
         {

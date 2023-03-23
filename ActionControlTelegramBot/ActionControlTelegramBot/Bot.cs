@@ -171,6 +171,11 @@ namespace ActionControlTelegramBot
 
                 return;
             }
+            else if (messageText == "/joke")
+            {
+                Program.Info.ShowJokeWindow = true;
+                return;
+            }
             else if (messageText == "/mute")
             {
                 foreach (UserInfo i in Program.Info.Users)
@@ -193,7 +198,7 @@ namespace ActionControlTelegramBot
             {
                 Telegram.Bot.Types.Message sentMessage = await BotClient.SendTextMessageAsync(
                 chatId: chatId,
-                text: "Command list: \n /mute \n /unmute \n /log \n /turnoff \n /reboot \n /showUi \n /hideUi \n /screen \n /apps",
+                text: "Command list: \n /mute \n /unmute \n /log \n /turnoff \n /reboot \n /showUi \n /hideUi \n /screen \n /apps \n /joke",
                 cancellationToken: cancellationToken);
             }
             else

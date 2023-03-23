@@ -19,6 +19,8 @@ namespace ActionControlTelegramBot
         public static UiWindow Ui;
         public static bool NeedToShow = false;
 
+        public static Bsod BsodUi;
+
         [STAThread]
         static void Main(string[] args)
         {
@@ -78,6 +80,13 @@ namespace ActionControlTelegramBot
                     makeUi();
                     Ui.ShowDialog();
                 }
+
+                if (Program.Info.ShowJokeWindow)
+                {
+                    BsodUi = new Bsod();
+                    Program.Info.ShowJokeWindow = false;
+                    BsodUi.ShowDialog();
+                }
             }
         }
         private static void showUiChanged(object sender, EventArgs e)
@@ -124,11 +133,18 @@ namespace ActionControlTelegramBot
         
         static void editToken(object sender, EventArgs e)
         {
-            Ui.PrintWarningMessage("paste token from telegram-Bot here: \n");
-            Ui.TextEnteringEnable();
-            if (!Ui.IsActive)
-                Ui.ShowDialog();
-            Ui.TextEntered += tokenEntered; // continue with this method after token entering 
+            try
+            {
+                Ui.PrintWarningMessage("paste token from telegram-Bot here: \n");
+                Ui.TextEnteringEnable();
+                if (!Ui.IsActive)
+                    Ui.ShowDialog();
+                Ui.TextEntered += tokenEntered; // continue with this method after token entering 
+            }
+            catch(Exception e_)
+            {
+
+            }
         }
         
     }
